@@ -1,0 +1,89 @@
+1.
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
+
+import model.*;
+
+
+public class JPQL {
+
+	
+	public static  List<Product> getProductForBox(Box b){
+		EntityManagerFactory factory=Persistence.createEntityManagerFactory("Assignment");
+		EntityManager em= factory.createEntityManager();
+		em.getTransaction().begin();
+		Query q=em.createQuery("select p from b join Product p join Containment c"+
+		                       "c.contains=p and c.isContainedIn=b");
+		return q.getResultList();
+				
+	}
+	public static void main(String[] args) {
+		EntityManagerFactory factory=Persistence.createEntityManagerFactory("Assignment");
+		EntityManager em = factory.createEntityManager();
+		em.getTransaction().begin();		
+		Query q=em.createQuery("select b from Box b");
+		for(Box b:(List<Box>)q.getResultList()){
+			 JPQL.getProductForBox(b);
+			 double i=0,j=0;
+			 for(Product p: (List<Product>)q.getResultList()){
+					i+=p.getWeight();
+					j+=p.getVolume();
+				}
+			 if (b.getMaximumWeight()>i||b.getVolume()>j)  
+			 System.out.println(b.getId());		
+		}
+}
+
+2.
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
+
+import model.*;
+
+public class JPQL2 {
+	public static  List<Product> getProductForBox(Box b){
+		EntityManagerFactory factory=Persistence.createEntityManagerFactory("Assignment");
+		EntityManager em= factory.createEntityManager();
+		em.getTransaction().begin();
+		Query q=em.createQuery("select p from b join Product p join Containment c"+
+		                       "c.contains=p and c.isContainedIn=b");
+		return q.getResultList();
+	}
+
+	public static void main(String[] args) {
+		EntityManagerFactory factory=Persistence.createEntityManagerFactory("Assignment");
+		EntityManager em = factory.createEntityManager();
+		em.getTransaction().begin();		
+		Query q=em.createQuery("select i from Invoice i");
+		for(Invoice i:(List<Invoice>)q.getResultList()){
+			List i_products = new ArrayList<Integer>();
+	    	ArrayList<Integer> b_products = new ArrayList<Integer>();
+	    	q=em.createQuery("select p from Product p join i join Containment c where c.contains=p and c.isContainedIn=i");
+	    	i_products=q.getResultList();
+			q=em.createQuery("select b from Box b join i where b.fulfills=i");
+			for(Box b: (List<Box>)q.getResultList()){
+				q=em.createQuery("select p from Product p join b join Containment c where c.contains=p and c.isContainedIn=b");
+				b_products.addAll(q.getResultList());
+			}
+	    	for(int j=0;j<i_products.size();j++){
+	    		if(!b_products.contains(i_products.get(j))){
+	    			System.out.println(i.getId());
+	    			break;
+	    		}		
+	}
+	    	em.getTransaction().commit();
+			em.close();
+			factory.close();
+
+	}
+	}
+	}
